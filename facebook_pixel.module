@@ -50,7 +50,7 @@ function facebook_pixel_user_insert(&$edit, $account, $category) {
  */
 function facebook_pixel_node_view($node, $view_mode, $langcode) {
   if ($view_mode == 'full' && node_is_page($node)) {
-    facebook_pixel_add_event('ViewContent');
+    facebook_pixel_add_event('ViewContent:' . $node->nid);
   }
 }
 
@@ -62,7 +62,8 @@ function facebook_pixel_node_view($node, $view_mode, $langcode) {
  */
 function facebook_pixel_ctools_render_alter(&$info, &$page, &$context) {
   if ($page && !empty($context['handler']->task) && $context['handler']->task == 'node_view') {
-    facebook_pixel_add_event('ViewContent');
+    $nid = reset($context['args']);
+    facebook_pixel_add_event('ViewContent:' . $nid);
   }
 }
 
@@ -188,6 +189,26 @@ function facebook_pixel_data_Purchase($order_id) {
   $data = array(
     'value' => number_format(commerce_currency_amount_to_decimal($order_total['amount'], $order_total['currency_code']), 2, '.', ''),
     'currency' => $order_total['currency_code'],
+  );
+  return drupal_json_encode($data);
+}
+
+/**
+ * Provides additional details for the Facebook Pixel ViewContent tag.
+ *
+ * @param int $nid
+ *   ID of the viewed Node.
+ *
+ * @return string
+ *   JSON string containing additional ViewContent tag details.
+ *
+ * @see facebook_pixel_node_view()
+ * @see facebook_pixel_ctools_render_alter()
+ */
+function facebook_pixel_data_ViewContent($nid) {
+  $data = array(
+    'content_type' => 'product',
+    'content_ids' => $nid,
   );
   return drupal_json_encode($data);
 }
