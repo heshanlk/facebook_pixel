@@ -40,7 +40,7 @@ function facebook_pixel_menu() {
  * Implements hook_user_insert().
  */
 function facebook_pixel_user_insert(&$edit, $account, $category) {
-  facebook_pixel_add_event('CompleteRegistration');
+  facebook_pixel_add_event('CompleteRegistration:' . $account->uid);
 }
 
 /**
@@ -74,7 +74,7 @@ function facebook_pixel_ctools_render_alter(&$info, &$page, &$context) {
  * (ex: click, landing page on Add to Cart button).
  */
 function facebook_pixel_commerce_cart_product_add($order, $product, $quantity, $line_item) {
-  facebook_pixel_add_event('AddToCart');
+  facebook_pixel_add_event('AddToCart:' . $order->order_id);
 }
 
 /**
@@ -85,7 +85,7 @@ function facebook_pixel_commerce_cart_product_add($order, $product, $quantity, $
  */
 function facebook_pixel_commerce_checkout_router($order, $checkout_page) {
   if ($checkout_page['page_id'] == 'checkout') {
-    facebook_pixel_add_event('InitiateCheckout');
+    facebook_pixel_add_event('InitiateCheckout:' . $order->order_id);
   }
 }
 
@@ -157,7 +157,9 @@ fbq('track', 'PageView');
 
         if (!empty($entity_id) && function_exists('facebook_pixel_data_' . $event)) {
           $data = call_user_func('facebook_pixel_data_' . $event, $entity_id);
-          $script .= "fbq('track', '$event', $data);\n";
+          // Allow to alter data.
+          drupal_alter('facebook_pixel_data_' . $event, $data, $entity_id);
+          $script .= "fbq('track', '$event', " . drupal_json_encode($data) . ");\n";
         }
         else {
           $script .= "fbq('track', '$event');\n";
@@ -199,7 +201,7 @@ function facebook_pixel_data_Purchase($order_id) {
     'value' => number_format(commerce_currency_amount_to_decimal($order_total['amount'], $order_total['currency_code']), 2, '.', ''),
     'currency' => $order_total['currency_code'],
   );
-  return drupal_json_encode($data);
+  return $data;
 }
 
 /**
@@ -219,7 +221,7 @@ function facebook_pixel_data_ViewContent($nid) {
     'content_type' => 'product',
     'content_ids' => $nid,
   );
-  return drupal_json_encode($data);
+  return $data;
 }
 
 /**
