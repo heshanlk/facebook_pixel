@@ -125,7 +125,12 @@ function facebook_pixel_add_event($event) {
  * @see facebook_pixel_add_event()
  */
 function facebook_pixel_preprocess_page(&$variables) {
-  if (variable_get('facebook_pixel_exclude_admin_paths', 1) && path_is_admin(current_path())) {
+  global $user;
+
+  if (
+    variable_get('facebook_pixel_exclude_admin_paths', 1) && path_is_admin(current_path())
+    || !facebook_pixel_user_visibility($user)
+  ) {
     return;
   }
 
@@ -215,4 +220,29 @@ function facebook_pixel_data_ViewContent($nid) {
     'content_ids' => $nid,
   );
   return drupal_json_encode($data);
+}
+
+/**
+ * Utility function to perform tracking visibility check for a user.
+ *
+ * @param object $user
+ *   a user object containing an array of roles to check.
+ * @return boolean
+ *   whether or not the current user should be served the pixel.
+ */
+function facebook_pixel_user_visibility($user) {
+  $visible = TRUE;
+  $roles = variable_get('facebook_pixel_roles', array());
+  if (array_sum($roles) > 0) {
+    // One or more roles are selected for tracking.
+    foreach (array_keys($user->roles) as $rid) {
+      // Is the current user a member of a role selected in settings?
+      if (isset($roles[$rid]) && $rid == $roles[$rid]) {
+        // Current user is a member of a role that is selected in settings.
+        $visible = FALSE;
+        break;
+      }
+    }
+  }
+  return $visible;
 }

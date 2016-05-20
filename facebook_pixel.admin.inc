@@ -25,5 +25,19 @@ function facebook_pixel_admin_settings_form($form_state) {
     '#default_value' => variable_get('facebook_pixel_exclude_admin_paths', 1),
   );
 
+  // Role specific visibility configurations.
+  $roles = user_roles();
+  $role_options = array();
+  foreach ($roles as $rid => $name) {
+    $role_options[$rid] = $name;
+  }
+  $form['facebook_pixel_roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Remove Facebook Pixel for specific roles'),
+    '#default_value' => variable_get('facebook_pixel_roles', array()),
+    '#options' => $role_options,
+    '#description' => t('Remove script only for the selected role(s). If none of the roles are selected, all roles will have the Facebook Pixel. Otherwise, any roles selected here will NOT have the script.'),
+  );
+
   return system_settings_form($form);
 }
