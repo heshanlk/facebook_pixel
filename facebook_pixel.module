@@ -125,6 +125,10 @@ function facebook_pixel_add_event($event) {
  * @see facebook_pixel_add_event()
  */
 function facebook_pixel_preprocess_page(&$variables) {
+  if (variable_get('facebook_pixel_exclude_admin_paths', 1) && path_is_admin(current_path())) {
+    return;
+  }
+
   if ($pixel_id = variable_get('facebook_pixel_id')) {
     $script = "
 <!-- Facebook Pixel Code -->

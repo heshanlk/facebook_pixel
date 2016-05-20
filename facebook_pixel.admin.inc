@@ -18,5 +18,12 @@ function facebook_pixel_admin_settings_form($form_state) {
     '#default_value' => variable_get('facebook_pixel_id'),
   );
 
+  $form['facebook_pixel_exclude_admin_paths'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Exclude from admin pages'),
+    '#description' => t('The pixel tracking code will not be added to admin pages.'),
+    '#default_value' => variable_get('facebook_pixel_exclude_admin_paths', 1),
+  );
+
   return system_settings_form($form);
 }
